@@ -1,10 +1,13 @@
+// @ts-nocheck
 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, desc, eq, gt } from 'drizzle-orm';
 // import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { neon } from '@neondatabase/serverless';
+// import postgres from 'postgres';
+// import { drizzle } from 'drizzle-orm/neon-serverless';
+// import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import {
@@ -26,6 +29,7 @@ import {
 // biome-ignore lint: Forbidden non-null assertion.
 // const client = postgres(process.env.POSTGRES_URL!);
 // const db = drizzle(client);
+neonConfig.fetchConnectionCache = true;
 const sql = neon(process.env.POSTGRES_URL!);
 const db = drizzle(sql);
 

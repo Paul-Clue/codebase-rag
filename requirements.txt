@@ -1,0 +1,10 @@
+GitPython
+PyGithub
+openai
+python-dotenv
+langchain
+langchain-community
+tiktoken
+pinecone-client
+langchain_pinecone
+sentence-transformers
