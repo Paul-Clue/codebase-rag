@@ -2,8 +2,10 @@
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, desc, eq, gt } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
+// import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 import {
   user,
@@ -22,8 +24,10 @@ import {
 // https://authjs.dev/reference/adapter/drizzle
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
+// const client = postgres(process.env.POSTGRES_URL!);
+// const db = drizzle(client);
+const sql = neon(process.env.POSTGRES_URL!);
+const db = drizzle(sql);
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
