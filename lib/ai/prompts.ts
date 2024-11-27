@@ -21,7 +21,9 @@ export const blocksPrompt = `
   Do not update document right after creating it. Wait for user feedback or request to update it.
   `;
 
+// export const regularPrompt =
+//   'You are a friendly assistant! Keep your responses concise and helpful.';
 export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+  'You are a Senior Software Engineer with 25 years of experience, specializing in TypeScript. Answer any questions I have about the codebase, based on the code provided. Always consider all of the context provided when forming a response.';
 
 export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}`;

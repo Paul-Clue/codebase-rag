@@ -6,6 +6,8 @@ import {
   streamText,
 } from 'ai';
 import { z } from 'zod';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { HfInference } from '@huggingface/inference';
 
 import { auth } from '@/app/(auth)/auth';
 import { customModel } from '@/lib/ai';
@@ -48,12 +50,111 @@ const weatherTools: AllowedTools[] = ['getWeather'];
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
 export async function POST(request: Request) {
+  if (!process.env.PINECONE_API_KEY) {
+    throw new Error('PINECONE_API_KEY is not defined');
+  }
+
+  const pc = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY!,
+  });
+
+  const index = pc
+    .index('codebase-rag')
+    .namespace('https://github.com/CoderAgent/SecureAgent');
+  // const index = pc.index('codebase-rag');
+  // const namespace = index.namespace(
+  //   'https://github.com/CoderAgent/SecureAgent'
+  // );
+
+  const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
+  async function getEmbeddings(text: string): Promise<number[]> {
+    try {
+      const response = await hf.featureExtraction({
+        model: 'sentence-transformers/all-mpnet-base-v2',
+        inputs: text,
+      });
+      return response as number[];
+    } catch (error) {
+      console.error('Error generating embeddings:', error);
+      throw error;
+    }
+  }
+
+  // async function getEmbeddings(text: string): Promise<number[]> {
+  //   try {
+  //     const response = await fetch('https://api.openai.com/v1/embeddings', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+  //       },
+  //       body: JSON.stringify({
+  //         input: text,
+  //         // Use text-embedding-3-small which has 768 dimensions
+  //         model: 'text-embedding-3-small',
+  //       }),
+  //     });
+
+  //     const json = await response.json();
+  //     // Return the embedding array directly
+  //     return json.data[0].embedding;
+  //   } catch (error) {
+  //     console.error('Error generating embeddings:', error);
+  //     throw error;
+  //   }
+  // }
+
+  // -------------------------------------------------------
+  // -------------------------------------------------------
   const {
     id,
     messages,
     modelId,
   }: { id: string; messages: Array<Message>; modelId: string } =
     await request.json();
+  let text = messages[messages.length - 1].content;
+
+  const embeddings = await getEmbeddings(text);
+  const results = await index.query({
+    topK: 3,
+    includeMetadata: true,
+    vector: embeddings,
+  });
+
+  let resultString =
+    '\n\nReturned results from vector db (done automatically): ';
+
+  results.matches.forEach((match) => {
+    resultString += `\n
+    Id: ${match.id}
+    Source: ${match.metadata?.source}
+    Text: ${match.metadata?.text}
+    \n\n
+    `;
+  });
+
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageContent = lastMessage.content + resultString;
+  messages[messages.length - 1].content = lastMessageContent;
+  const lastDataWithoutLastMessage = messages.slice(0, messages.length - 1);
+
+  // const openai = new OpenAI({
+  //   apiKey: process.env.OPENAI_API_KEY,
+  // });
+
+  // const completion = await openai.chat.completions.create({
+  //   messages: [
+  //     { role: 'system' as const, content: systemPrompt },
+  //     ...lastDataWithoutLastMessage.map(msg => ({
+  //       role: msg.role as 'system' | 'user' | 'assistant',
+  //       content: msg.content
+  //     })),
+  //     { role: 'user' as const, content: lastMessageContent }
+  //   ],
+  //   model: 'gpt-4o',
+  //   stream: true,
+  // });
 
   const session = await auth();
 
@@ -104,7 +205,7 @@ export async function POST(request: Request) {
         }),
         execute: async ({ latitude, longitude }) => {
           const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
           );
 
           const weatherData = await response.json();
@@ -350,7 +451,7 @@ export async function POST(request: Request) {
                   content: message.content,
                   createdAt: new Date(),
                 };
-              },
+              }
             ),
           });
         } catch (error) {
