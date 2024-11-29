@@ -29,6 +29,9 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
 
+  const [owner, setOwner] = useState('');
+  const [repoName, setRepoName] = useState('');
+
   const {
     messages,
     setMessages,
@@ -40,7 +43,7 @@ export function Chat({
     stop,
     data: streamingData,
   } = useChat({
-    body: { id, modelId: selectedModelId },
+    body: { id, modelId: selectedModelId, owner, repoName },
     initialMessages,
     onFinish: () => {
       mutate('/api/history');
@@ -124,6 +127,8 @@ export function Chat({
             messages={messages}
             setMessages={setMessages}
             append={append}
+            setOwner={setOwner}
+            setRepoName={setRepoName}
           />
         </form>
       </div>

@@ -50,6 +50,20 @@ const weatherTools: AllowedTools[] = ['getWeather'];
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
 export async function POST(request: Request) {
+  const {
+    id,
+    messages,
+    modelId,
+    owner,
+    repoName,
+  }: {
+    id: string;
+    messages: Array<Message>;
+    modelId: string;
+    owner: string;
+    repoName: string;
+  } = await request.json();
+
   if (!process.env.PINECONE_API_KEY) {
     throw new Error('PINECONE_API_KEY is not defined');
   }
@@ -58,9 +72,11 @@ export async function POST(request: Request) {
     apiKey: process.env.PINECONE_API_KEY!,
   });
 
-  const index = pc
-    .index('codebase-rag')
-    .namespace('https://github.com/CoderAgent/SecureAgent');
+  // const index = pc
+  //   .index('codebase-rag')
+  //   .namespace('https://github.com/CoderAgent/SecureAgent');
+
+  const index = pc.index('codebase-rag').namespace(owner);
   // const index = pc.index('codebase-rag');
   // const namespace = index.namespace(
   //   'https://github.com/CoderAgent/SecureAgent'
@@ -107,12 +123,12 @@ export async function POST(request: Request) {
 
   // -------------------------------------------------------
   // -------------------------------------------------------
-  const {
-    id,
-    messages,
-    modelId,
-  }: { id: string; messages: Array<Message>; modelId: string } =
-    await request.json();
+  // const {
+  //   id,
+  //   messages,
+  //   modelId,
+  // }: { id: string; messages: Array<Message>; modelId: string } =
+  //   await request.json();
   let text = messages[messages.length - 1].content;
 
   const embeddings = await getEmbeddings(text);
