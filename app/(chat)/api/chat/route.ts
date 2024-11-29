@@ -75,15 +75,7 @@ export async function POST(request: Request) {
     apiKey: process.env.PINECONE_API_KEY!,
   });
 
-  // const index = pc
-  //   .index('codebase-rag')
-  //   .namespace('https://github.com/CoderAgent/SecureAgent');
-
   const index = pc.index('codebase-rag').namespace(repoName);
-  // const index = pc.index('codebase-rag');
-  // const namespace = index.namespace(
-  //   'https://github.com/CoderAgent/SecureAgent'
-  // );
 
   const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
@@ -100,38 +92,6 @@ export async function POST(request: Request) {
     }
   }
 
-  // async function getEmbeddings(text: string): Promise<number[]> {
-  //   try {
-  //     const response = await fetch('https://api.openai.com/v1/embeddings', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-  //       },
-  //       body: JSON.stringify({
-  //         input: text,
-  //         // Use text-embedding-3-small which has 768 dimensions
-  //         model: 'text-embedding-3-small',
-  //       }),
-  //     });
-
-  //     const json = await response.json();
-  //     // Return the embedding array directly
-  //     return json.data[0].embedding;
-  //   } catch (error) {
-  //     console.error('Error generating embeddings:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // -------------------------------------------------------
-  // -------------------------------------------------------
-  // const {
-  //   id,
-  //   messages,
-  //   modelId,
-  // }: { id: string; messages: Array<Message>; modelId: string } =
-  //   await request.json();
   let text = messages[messages.length - 1].content;
 
   const embeddings = await getEmbeddings(text);
@@ -157,23 +117,6 @@ export async function POST(request: Request) {
   const lastMessageContent = lastMessage.content + resultString;
   messages[messages.length - 1].content = lastMessageContent;
   const lastDataWithoutLastMessage = messages.slice(0, messages.length - 1);
-
-  // const openai = new OpenAI({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
-
-  // const completion = await openai.chat.completions.create({
-  //   messages: [
-  //     { role: 'system' as const, content: systemPrompt },
-  //     ...lastDataWithoutLastMessage.map(msg => ({
-  //       role: msg.role as 'system' | 'user' | 'assistant',
-  //       content: msg.content
-  //     })),
-  //     { role: 'user' as const, content: lastMessageContent }
-  //   ],
-  //   model: 'gpt-4o',
-  //   stream: true,
-  // });
 
   const session = await auth();
 

@@ -21,7 +21,6 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
-// import { processGitHubRepo } from '@/lib/embeddings/ast-embedder';
 
 import { sanitizeUIMessages } from '@/lib/utils';
 
@@ -29,19 +28,6 @@ import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
-
-const suggestedActions = [
-  {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
-  },
-  {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft a short essay about Silicon Valley',
-  },
-];
 
 interface MultimodalInputProps {
   className?: string;
@@ -202,28 +188,12 @@ export function MultimodalInput({
   );
   // section:
 
-  // async function isValidGitHubRepo(owner: string, repo: string): Promise<boolean> {
-  //   try {
-  //     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-  //       headers: {
-  //         'Authorization': `Bearer ${process.env.GIT_HUB_TOKEN}`,
-  //         'Accept': 'application/vnd.github.v3+json'
-  //       }
-  //     });
-  //     return response.status === 200;
-  //   } catch (error) {
-  //     console.error('Error checking repo:', error);
-  //     return false;
-  //   }
-  // }
-
   const embedRepo = async (repo: string) => {
     const githubUrlRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+$/;
     const isValidUrl = githubUrlRegex.test(repo);
 
     const urlObj = new URL(repo);
     if (isValidUrl) {
-      // toast.success(extracted);
       setLoading(true);
       const [owner, repoName] = urlObj.pathname.split('/').filter(Boolean);
       try {
@@ -257,45 +227,8 @@ export function MultimodalInput({
     } else {
       toast.error('Invalid GitHub repository URL');
     }
-
-    // if (!repo.startsWith("https://github.com/")) {
-    //   toast.error("Invalid GitHub repository URL");
-    //   return;
-    // }
-
-    // if (isValidUrl) {
-    //   toast.success("Valid URL");
-    //   setInput('');
-    //   setValidRepo(true);
-    //   return;
-    // }else{
-    //   toast.error("Invalid GitHub repository URL");
-    // }
   };
-  // async function embedRepo(owner: string, repo: string): Promise<boolean> {
-  //   try {
-  //     console.log(`Checking repo: ${owner}/${repo}`);  // Debug
-  //     console.log(`Token: ${process.env.GITHUB_TOKEN}`); // Debug (remove in production)
 
-  //     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-  //       headers: {
-  //         'Authorization': `token ${process.env.GITHUB_TOKEN}`,  // Changed from Bearer to token
-  //         'Accept': 'application/vnd.github.v3+json'
-  //       }
-  //     });
-
-  //     console.log('Response status:', response.status);  // Debug
-  //     if (!response.ok) {
-  //       const error = await response.json();
-  //       console.log('Error details:', error);  // Debug
-  //     }
-
-  //     return response.status === 200;
-  //   } catch (error) {
-  //     console.error('Error checking repo:', error);
-  //     return false;
-  //   }
-  // }
   // section:
   const handleGitHubUrl = (url: string) => {
     const extracted = url.substring(0, url.indexOf('/', 8));
@@ -305,7 +238,6 @@ export function MultimodalInput({
         urlObj.hostname === 'github.com' &&
         extracted === 'https://github.com'
       ) {
-        // toast.success(extracted);
         const [owner, repo] = urlObj.pathname.split('/').filter(Boolean);
         setOwner(owner);
         setRepoName(repo);
@@ -317,41 +249,7 @@ export function MultimodalInput({
 
   return (
     <div className='relative w-full flex flex-col gap-4'>
-      {/* {messages.length === 0 &&
-        attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <div className='grid sm:grid-cols-2 gap-2 w-full'>
-            {suggestedActions.map((suggestedAction, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.05 * index }}
-                key={`suggested-action-${suggestedAction.title}-${index}`}
-                className={index > 1 ? 'hidden sm:block' : 'block'}
-              >
-                <Button
-                  variant="ghost"
-                  onClick={async () => {
-                    window.history.replaceState({}, '', `/chat/${chatId}`);
-
-                    append({
-                      role: 'user',
-                      content: suggestedAction.action,
-                    });
-                  }}
-                  className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
-                >
-                  <span className="font-medium">{suggestedAction.title}</span>
-                  <span className="text-muted-foreground">
-                    {suggestedAction.label}
-                  </span>
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        )} */}
-        {loading && <LoadingMessage />}
+      {loading && <LoadingMessage />}
 
       <input
         type='file'
@@ -401,14 +299,6 @@ export function MultimodalInput({
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
               event.preventDefault();
-
-              // if (isLoading) {
-              //   toast.error(
-              //     'Please wait for the model to finish its response!'
-              //   );
-              // } else {
-              //   submitForm();
-              // }
             }
           }}
         />
@@ -446,7 +336,6 @@ export function MultimodalInput({
           className='rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600'
           onClick={(event) => {
             event.preventDefault();
-            // stop();
             embedRepo(input);
           }}
         >

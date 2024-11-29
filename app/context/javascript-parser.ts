@@ -26,9 +26,37 @@ export class JavascriptParser implements AbstractParser {
     lineStart: number,
     lineEnd: number
   ): EnclosingContext {
+    // const ast = parser.parse(file, {
+    //   sourceType: 'module',
+    //   plugins: ['jsx', 'typescript'],
+    // });
     const ast = parser.parse(file, {
       sourceType: 'module',
-      plugins: ['jsx', 'typescript'], // To allow JSX and TypeScript
+      // plugins: ["jsx", "typescript"],
+      plugins: [
+        'jsx',
+        'typescript',
+        'decorators',
+        'classProperties',
+        'classPrivateProperties',
+        'classPrivateMethods',
+        'exportDefaultFrom',
+        'exportNamespaceFrom',
+        'asyncGenerators',
+        'functionBind',
+        'functionSent',
+        'dynamicImport',
+        'numericSeparator',
+        'optionalChaining',
+        'importMeta',
+        'bigInt',
+        'optionalCatchBinding',
+        'throwExpressions',
+        'nullishCoalescingOperator',
+      ],
+      tokens: true,
+      ranges: true,
+      attachComment: true,
     });
     let largestEnclosingContext: Node | null = null;
     let largestSize = 0;
@@ -58,8 +86,6 @@ export class JavascriptParser implements AbstractParser {
   }
 
   dryRun(file: string): { valid: boolean; error: string; ast: any } {
-    // dryRun(file: string): { valid: boolean; error: string; ast: any } {
-    // dryRun(file: string): { valid: boolean; error: string } {
     try {
       const ast = parser.parse(file, {
         sourceType: 'module',
@@ -85,12 +111,10 @@ export class JavascriptParser implements AbstractParser {
           'throwExpressions',
           'nullishCoalescingOperator',
         ],
-        tokens: true, // Include tokens in output
-        ranges: true, // Include ranges in output
+        tokens: true,
+        ranges: true,
         attachComment: true,
       });
-
-      // console.log('AST', ast);
 
       return {
         valid: true,

@@ -33,28 +33,19 @@ export async function POST(request: Request) {
     repoName: string;
     repo: string;
   } = await request.json();
-  // console.log('REPO', repo);
 
   const isValid = await isValidGitHubRepo(owner, repoName);
-  // if (!isValid) {
-  //   return new Response('Invalid GitHub repository', { status: 400 });
-  // }
 
   try {
     if (isValid) {
       await processGitHubRepo(owner, repoName);
       return NextResponse.json({ success: true });
     }
-    return NextResponse.json(
-      { error: 'Invalid repository' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid repository' }, { status: 400 });
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to embed repository' },
       { status: 500 }
     );
   }
-
-  // const { owner, repo } = await request.json();
 }

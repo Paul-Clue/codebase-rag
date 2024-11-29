@@ -7,33 +7,33 @@ import { HfInference } from '@huggingface/inference';
 const SUPPORTED_EXTENSIONS = {
   '.js': 'javascript',
   '.jsx': 'javascript',
-  '.ts': 'javascript', 
+  '.ts': 'javascript',
   '.tsx': 'javascript',
-  '.py': 'python'
+  '.py': 'python',
 } as const;
 
-type SupportedLanguage = typeof SUPPORTED_EXTENSIONS[keyof typeof SUPPORTED_EXTENSIONS];
+type SupportedLanguage =
+  (typeof SUPPORTED_EXTENSIONS)[keyof typeof SUPPORTED_EXTENSIONS];
 
 export async function processGitHubRepo(owner: string, repo: string) {
   const octokit = new Octokit({
-    auth: process.env.GIT_HUB_TOKEN
-    // auth: process.env.GITHUB_PRIVATE_KEY
+    auth: process.env.GIT_HUB_TOKEN,
   });
   // 1. Get repo contents
   const { data: files } = await octokit.repos.getContent({
     owner,
     repo,
-    path: ''
+    path: '',
   });
-  
+
   // 2. Process each file recursively
   await processDirectory(octokit, owner, repo, '', files as any[]);
 }
 
 async function processDirectory(
-  octokit: Octokit, 
+  octokit: Octokit,
   owner: string,
-  repo: string, 
+  repo: string,
   path: string,
   contents: any[]
 ) {
@@ -42,9 +42,15 @@ async function processDirectory(
       const { data: dirContents } = await octokit.repos.getContent({
         owner,
         repo,
-        path: item.path
+        path: item.path,
       });
-      await processDirectory(octokit, owner, repo, item.path, dirContents as any[]);
+      await processDirectory(
+        octokit,
+        owner,
+        repo,
+        item.path,
+        dirContents as any[]
+      );
     } else if (item.type === 'file') {
       const extension = getFileExtension(item.name);
       if (extension in SUPPORTED_EXTENSIONS) {
@@ -64,14 +70,27 @@ async function processFile(
   const { data } = await octokit.repos.getContent({
     owner,
     repo,
-    path: file.path
+    path: file.path,
   });
 
-  const content = Buffer.from((data as { content: string }).content, 'base64').toString();
-  const language = SUPPORTED_EXTENSIONS[getFileExtension(file.name) as keyof typeof SUPPORTED_EXTENSIONS];
-  
-  await convertToASTAndEmbed(content, language, file.path, `${owner}/${repo}`, repo);
-}import traverse from '@babel/traverse';
+  const content = Buffer.from(
+    (data as { content: string }).content,
+    'base64'
+  ).toString();
+  const language =
+    SUPPORTED_EXTENSIONS[
+      getFileExtension(file.name) as keyof typeof SUPPORTED_EXTENSIONS
+    ];
+
+  await convertToASTAndEmbed(
+    content,
+    language,
+    file.path,
+    `${owner}/${repo}`,
+    repo
+  );
+}
+import traverse from '@babel/traverse';
 
 async function convertToASTAndEmbed(
   code: string,
@@ -81,11 +100,9 @@ async function convertToASTAndEmbed(
   repo: string
 ) {
   // 1. Parse code to AST
-  const parser = language === 'javascript' ? 
-    new JavascriptParser() : 
-    new PythonParser();
-    
-  // const ast = await parser.dryRun(code);
+  const parser =
+    language === 'javascript' ? new JavascriptParser() : new PythonParser();
+
   const result = await parser.dryRun(code);
   const { valid, error } = result;
   const ast = 'ast' in result ? result.ast : null;
@@ -93,7 +110,6 @@ async function convertToASTAndEmbed(
   const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
   const embedding = await hf.featureExtraction({
     model: 'sentence-transformers/all-mpnet-base-v2',
-    // inputs: JSON.stringify(ast)
     inputs: JSON.stringify({
       ast: ast,
       fileContent: code,
@@ -101,30 +117,32 @@ async function convertToASTAndEmbed(
       metadata: {
         language,
         valid,
-        error
-      }
-    })
+        error,
+      },
+    }),
   });
 
   // 3. Store in Pinecone
   const pc = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY!
+    apiKey: process.env.PINECONE_API_KEY!,
   });
 
   const index = pc.index('codebase-rag').namespace(repo);
-  
-  await index.upsert([{
-    id: `${repoId}/${filepath}`,
-    values: embedding as number[],
-    metadata: {
-      repo: repoId,
-      filepath,
-      language,
-      ast: JSON.stringify({ valid, error })
-    }
-  }]);
+
+  await index.upsert([
+    {
+      id: `${repoId}/${filepath}`,
+      values: embedding as number[],
+      metadata: {
+        repo: repoId,
+        filepath,
+        language,
+        ast: JSON.stringify({ valid, error }),
+      },
+    },
+  ]);
 }
 
 function getFileExtension(filename: string): string {
   return filename.slice(filename.lastIndexOf('.'));
-} 
+}
