@@ -1,9 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   experimental: {
-    ppr: true,
+    serverComponentsExternalPackages: ['./node_modules/**/*.wasm', './node_modules/**/*.proto'],
   },
   images: {
     remotePatterns: [
