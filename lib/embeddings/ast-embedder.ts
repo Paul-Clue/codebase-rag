@@ -25,7 +25,7 @@ export async function processGitHubRepo(owner: string, repo: string) {
     repo,
     path: '',
   });
-
+  console.log(3);
   // 2. Process each file recursively
   await processDirectory(octokit, owner, repo, '', files as any[]);
 }
