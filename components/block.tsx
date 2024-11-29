@@ -80,15 +80,17 @@ export function Block({
   votes: Array<Vote> | undefined;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => void;
 }) {
+  const [owner, setOwner] = useState('');
+  const [repoName, setRepoName] = useState('');
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
@@ -100,7 +102,7 @@ export function Block({
     block && block.status !== 'streaming'
       ? `/api/document?id=${block.documentId}`
       : null,
-    fetcher,
+    fetcher
   );
 
   const { data: suggestions } = useSWR<Array<Suggestion>>(
@@ -110,7 +112,7 @@ export function Block({
     fetcher,
     {
       dedupingInterval: 5000,
-    },
+    }
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
@@ -176,15 +178,15 @@ export function Block({
           }
           return currentDocuments;
         },
-        { revalidate: false },
+        { revalidate: false }
       );
     },
-    [block, mutate],
+    [block, mutate]
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000,
+    2000
   );
 
   const saveContent = useCallback(
@@ -199,7 +201,7 @@ export function Block({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange],
+    [document, debouncedHandleContentChange, handleContentChange]
   );
 
   function getDocumentContentById(index: number) {
@@ -251,14 +253,14 @@ export function Block({
 
   return (
     <motion.div
-      className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-muted"
+      className='flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-muted'
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { delay: 0.4 } }}
     >
       {!isMobile && (
         <motion.div
-          className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
+          className='relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0'
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -281,7 +283,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
+                className='left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50'
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -289,10 +291,10 @@ export function Block({
             )}
           </AnimatePresence>
 
-          <div className="flex flex-col h-full justify-between items-center gap-4">
+          <div className='flex flex-col h-full justify-between items-center gap-4'>
             <div
               ref={messagesContainerRef}
-              className="flex flex-col gap-4 h-full items-center overflow-y-scroll px-4 pt-20"
+              className='flex flex-col gap-4 h-full items-center overflow-y-scroll px-4 pt-20'
             >
               {messages.map((message, index) => (
                 <PreviewMessage
@@ -312,15 +314,17 @@ export function Block({
 
               <div
                 ref={messagesEndRef}
-                className="shrink-0 min-w-[24px] min-h-[24px]"
+                className='shrink-0 min-w-[24px] min-h-[24px]'
               />
             </div>
 
-            <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+            <form className='flex flex-row gap-2 relative items-end w-full px-4 pb-4'>
               <MultimodalInput
                 chatId={chatId}
                 input={input}
                 setInput={setInput}
+                setOwner={setOwner}
+                setRepoName={setRepoName}
                 handleSubmit={handleSubmit}
                 isLoading={isLoading}
                 stop={stop}
@@ -328,7 +332,7 @@ export function Block({
                 setAttachments={setAttachments}
                 messages={messages}
                 append={append}
-                className="bg-background dark:bg-muted"
+                className='bg-background dark:bg-muted'
                 setMessages={setMessages}
               />
             </form>
@@ -337,7 +341,7 @@ export function Block({
       )}
 
       <motion.div
-        className="fixed dark:bg-muted bg-background h-dvh flex flex-col shadow-xl overflow-y-scroll"
+        className='fixed dark:bg-muted bg-background h-dvh flex flex-col shadow-xl overflow-y-scroll'
         initial={
           isMobile
             ? {
@@ -399,11 +403,11 @@ export function Block({
           },
         }}
       >
-        <div className="p-2 flex flex-row justify-between items-start">
-          <div className="flex flex-row gap-4 items-start">
+        <div className='p-2 flex flex-row justify-between items-start'>
+          <div className='flex flex-row gap-4 items-start'>
             <Button
-              variant="outline"
-              className="h-fit p-2 dark:hover:bg-zinc-700"
+              variant='outline'
+              className='h-fit p-2 dark:hover:bg-zinc-700'
               onClick={() => {
                 setBlock((currentBlock) => ({
                   ...currentBlock,
@@ -414,37 +418,37 @@ export function Block({
               <CrossIcon size={18} />
             </Button>
 
-            <div className="flex flex-col">
-              <div className="font-medium">
+            <div className='flex flex-col'>
+              <div className='font-medium'>
                 {document?.title ?? block.title}
               </div>
 
               {isContentDirty ? (
-                <div className="text-sm text-muted-foreground">
+                <div className='text-sm text-muted-foreground'>
                   Saving changes...
                 </div>
               ) : document ? (
-                <div className="text-sm text-muted-foreground">
+                <div className='text-sm text-muted-foreground'>
                   {`Updated ${formatDistance(
                     new Date(document.createdAt),
                     new Date(),
                     {
                       addSuffix: true,
-                    },
+                    }
                   )}`}
                 </div>
               ) : (
-                <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                <div className='w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse' />
               )}
             </div>
           </div>
 
-          <div className="flex flex-row gap-1">
+          <div className='flex flex-row gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700"
+                  variant='outline'
+                  className='p-2 h-fit dark:hover:bg-zinc-700'
                   onClick={() => {
                     copyToClipboard(block.content);
                     toast.success('Copied to clipboard!');
@@ -459,8 +463,8 @@ export function Block({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+                  variant='outline'
+                  className='p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto'
                   onClick={() => {
                     handleVersionChange('prev');
                   }}
@@ -476,8 +480,8 @@ export function Block({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+                  variant='outline'
+                  className='p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto'
                   onClick={() => {
                     handleVersionChange('next');
                   }}
@@ -491,12 +495,12 @@ export function Block({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant='outline'
                   className={cx(
                     'p-2 h-fit !pointer-events-auto dark:hover:bg-zinc-700',
                     {
                       'bg-muted': mode === 'diff',
-                    },
+                    }
                   )}
                   onClick={() => {
                     handleVersionChange('toggle');
@@ -513,8 +517,8 @@ export function Block({
           </div>
         </div>
 
-        <div className="prose dark:prose-invert dark:bg-muted bg-background h-full overflow-y-scroll px-4 py-8 md:p-20 !max-w-full pb-40 items-center">
-          <div className="flex flex-row max-w-[600px] mx-auto">
+        <div className='prose dark:prose-invert dark:bg-muted bg-background h-full overflow-y-scroll px-4 py-8 md:p-20 !max-w-full pb-40 items-center'>
+          <div className='flex flex-row max-w-[600px] mx-auto'>
             {isDocumentsFetching && !block.content ? (
               <DocumentSkeleton />
             ) : mode === 'edit' ? (
@@ -528,7 +532,7 @@ export function Block({
                 currentVersionIndex={currentVersionIndex}
                 status={block.status}
                 saveContent={saveContent}
-                suggestions={isCurrentVersion ? (suggestions ?? []) : []}
+                suggestions={isCurrentVersion ? suggestions ?? [] : []}
               />
             ) : (
               <DiffView
@@ -538,7 +542,7 @@ export function Block({
             )}
 
             {suggestions ? (
-              <div className="md:hidden h-dvh w-12 shrink-0" />
+              <div className='md:hidden h-dvh w-12 shrink-0' />
             ) : null}
 
             <AnimatePresence>
