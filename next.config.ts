@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['./node_modules/**/*.wasm', './node_modules/**/*.proto'],
+    serverComponentsExternalPackages: ['@tree-sitter/tree-sitter'],
   },
   images: {
     remotePatterns: [
