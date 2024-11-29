@@ -1,13 +1,20 @@
-import { Message } from '@/lib/db/schema';
 import { processGitHubRepo } from '@/lib/embeddings/ast-embedder';
 import { NextResponse } from 'next/server';
 
-async function isValidGitHubRepo(
-  owner: string,
-  repoName: string
-): Promise<boolean> {
+export async function POST(request: Request) {
   try {
-    const response = await fetch(
+    const body = await request.json();
+    const { owner, repoName } = body;
+
+    if (!owner || !repoName) {
+      return NextResponse.json(
+        { error: 'Missing owner or repository name' },
+        { status: 400 }
+      );
+    }
+
+    // Validate GitHub repo
+    const isValid = await fetch(
       `https://api.github.com/repos/${owner}/${repoName}`,
       {
         headers: {
@@ -15,36 +22,23 @@ async function isValidGitHubRepo(
           Accept: 'application/vnd.github.v3+json',
         },
       }
-    );
-    return response.status === 200;
-  } catch (error) {
-    console.error('Error checking repo:', error);
-    return false;
-  }
-}
+    ).then(res => res.status === 200);
 
-export async function POST(request: Request) {
-  const {
-    owner,
-    repoName,
-    repo,
-  }: {
-    owner: string;
-    repoName: string;
-    repo: string;
-  } = await request.json();
-
-  const isValid = await isValidGitHubRepo(owner, repoName);
-
-  try {
-    if (isValid) {
-      await processGitHubRepo(owner, repoName);
-      return NextResponse.json({ success: true });
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid GitHub repository' },
+        { status: 400 }
+      );
     }
-    return NextResponse.json({ error: 'Invalid repository' }, { status: 400 });
+
+    // Process the repo
+    await processGitHubRepo(owner, repoName);
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Error processing repository:', error);
     return NextResponse.json(
-      { error: 'Failed to embed repository' },
+      { error: 'Failed to process repository' },
       { status: 500 }
     );
   }

@@ -190,42 +190,36 @@ export function MultimodalInput({
 
   const embedRepo = async (repo: string) => {
     const githubUrlRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+$/;
-    const isValidUrl = githubUrlRegex.test(repo);
-
-    const urlObj = new URL(repo);
-    if (isValidUrl) {
-      setLoading(true);
-      const [owner, repoName] = urlObj.pathname.split('/').filter(Boolean);
-      try {
-        const response = await fetch('/api/embed', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            repoUrl: repo,
-            owner: owner,
-            repoName: repoName,
-          }),
-        });
-
-        console.log('RESPONSE', response);
-
-        if (response.ok) {
-          toast.success('Repository embedded successfully');
-          setInput('');
-          setValidRepo(true);
-        } else {
-          toast.error('Failed to embed repository');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        toast.error('Failed to embed repository');
-      } finally {
-        setLoading(false);
-      }
-    } else {
+    if (!githubUrlRegex.test(repo)) {
       toast.error('Invalid GitHub repository URL');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const [owner, repoName] = new URL(repo).pathname.split('/').filter(Boolean);
+      
+      const response = await fetch('/api/embed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ owner, repoName }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to embed repository');
+      }
+
+      toast.success('Repository embedded successfully');
+      setInput('');
+      setValidRepo(true);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error((error as Error).message || 'Failed to embed repository');
+    } finally {
+      setLoading(false);
     }
   };
 
