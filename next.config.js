@@ -11,16 +11,16 @@ const nextConfig = {
       path: false,
     };
 
-    // Add WASM support
+    // Configure WASM loading
     config.experiments = {
-      ...config.experiments,
       asyncWebAssembly: true,
+      layers: true,
     };
 
     return config;
   },
-  // Add public directory to asset prefix
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/_next' : '',
+  // Remove assetPrefix as it's not needed
+  output: 'standalone',
 };
 
 module.exports = nextConfig; 

@@ -184,7 +184,7 @@ export function MultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments]
+    [setAttachments, attachments]
   );
   // section:
 
