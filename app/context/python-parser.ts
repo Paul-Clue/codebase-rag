@@ -23,7 +23,7 @@ export class PythonParser implements PythonAbstractParser {
     if (!this.initialized) {
       await Parser.init();
       this.parser = new Parser();
-      const Lang = await Parser.Language.load('src/tree-sitter-python.wasm');
+      const Lang = await Parser.Language.load('/wasm/tree-sitter.wasm');
       this.parser.setLanguage(Lang);
       this.initialized = true;
     }

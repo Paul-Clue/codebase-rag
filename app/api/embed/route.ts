@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         error: 'Missing owner or repository name'
       });
     }
-
+    console.log('Processing repository:', owner, repoName);
     // Process the repo
     await processGitHubRepo(owner, repoName);
     
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     console.error('Error processing repository:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to process repository'
+      error: error
     });
   }
 }

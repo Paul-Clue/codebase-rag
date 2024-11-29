@@ -61,16 +61,12 @@ export async function POST(request: Request) {
     } = await request.json();
     console.log(1);
     if (!process.env.PINECONE_API_KEY) {
-      console.log('PINECONE_API_KEY is not defined');
-      console.error('PINECONE_API_KEY is not defined');
       return NextResponse.json({ 
         error: 'PINECONE_API_KEY is not defined' 
       }, { status: 500 });
     }
     console.log(2);
     if (!process.env.HUGGINGFACE_API_KEY) {
-      console.log('HUGGINGFACE_API_KEY is not defined');
-      console.error('HUGGINGFACE_API_KEY is not defined');
       return NextResponse.json({ 
         error: 'HUGGINGFACE_API_KEY is not defined' 
       }, { status: 500 });
