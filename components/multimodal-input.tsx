@@ -8,6 +8,7 @@ import type {
 } from 'ai';
 import cx from 'classnames';
 import { motion } from 'framer-motion';
+import { LoadingMessage } from './message';
 import type React from 'react';
 import {
   useRef,
@@ -223,6 +224,7 @@ export function MultimodalInput({
     const urlObj = new URL(repo);
     if (isValidUrl) {
       // toast.success(extracted);
+      setLoading(true);
       const [owner, repoName] = urlObj.pathname.split('/').filter(Boolean);
       try {
         const response = await fetch('/api/embed', {
@@ -249,6 +251,8 @@ export function MultimodalInput({
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to embed repository');
+      } finally {
+        setLoading(false);
       }
     } else {
       toast.error('Invalid GitHub repository URL');
@@ -313,11 +317,11 @@ export function MultimodalInput({
 
   return (
     <div className='relative w-full flex flex-col gap-4'>
-      {messages.length === 0 &&
+      {/* {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
           <div className='grid sm:grid-cols-2 gap-2 w-full'>
-            {/* {suggestedActions.map((suggestedAction, index) => (
+            {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -344,9 +348,10 @@ export function MultimodalInput({
                   </span>
                 </Button>
               </motion.div>
-            ))} */}
+            ))}
           </div>
-        )}
+        )} */}
+        {loading && <LoadingMessage />}
 
       <input
         type='file'
@@ -397,13 +402,13 @@ export function MultimodalInput({
             if (event.key === 'Enter' && !event.shiftKey) {
               event.preventDefault();
 
-              if (isLoading) {
-                toast.error(
-                  'Please wait for the model to finish its response!'
-                );
-              } else {
-                submitForm();
-              }
+              // if (isLoading) {
+              //   toast.error(
+              //     'Please wait for the model to finish its response!'
+              //   );
+              // } else {
+              //   submitForm();
+              // }
             }
           }}
         />

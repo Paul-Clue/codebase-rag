@@ -1,6 +1,6 @@
-import { AbstractParser, EnclosingContext } from "../constants";
-import * as parser from "@babel/parser";
-import traverse, { NodePath, Node } from "@babel/traverse";
+import { AbstractParser, EnclosingContext } from '../constants';
+import * as parser from '@babel/parser';
+import traverse, { NodePath, Node } from '@babel/traverse';
 
 const processNode = (
   path: NodePath<Node>,
@@ -27,8 +27,8 @@ export class JavascriptParser implements AbstractParser {
     lineEnd: number
   ): EnclosingContext {
     const ast = parser.parse(file, {
-      sourceType: "module",
-      plugins: ["jsx", "typescript"], // To allow JSX and TypeScript
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'], // To allow JSX and TypeScript
     });
     let largestEnclosingContext: Node | null = null;
     let largestSize = 0;
@@ -58,17 +58,43 @@ export class JavascriptParser implements AbstractParser {
   }
 
   dryRun(file: string): { valid: boolean; error: string; ast: any } {
-  // dryRun(file: string): { valid: boolean; error: string; ast: any } {
-  // dryRun(file: string): { valid: boolean; error: string } {
+    // dryRun(file: string): { valid: boolean; error: string; ast: any } {
+    // dryRun(file: string): { valid: boolean; error: string } {
     try {
       const ast = parser.parse(file, {
-        sourceType: "module",
-        plugins: ["jsx", "typescript"],
+        sourceType: 'module',
+        // plugins: ["jsx", "typescript"],
+        plugins: [
+          'jsx',
+          'typescript',
+          'decorators',
+          'classProperties',
+          'classPrivateProperties',
+          'classPrivateMethods',
+          'exportDefaultFrom',
+          'exportNamespaceFrom',
+          'asyncGenerators',
+          'functionBind',
+          'functionSent',
+          'dynamicImport',
+          'numericSeparator',
+          'optionalChaining',
+          'importMeta',
+          'bigInt',
+          'optionalCatchBinding',
+          'throwExpressions',
+          'nullishCoalescingOperator',
+        ],
+        tokens: true, // Include tokens in output
+        ranges: true, // Include ranges in output
+        attachComment: true,
       });
-      
+
+      // console.log('AST', ast);
+
       return {
         valid: true,
-        error: "",
+        error: '',
         ast,
       };
     } catch (exc) {
@@ -79,5 +105,4 @@ export class JavascriptParser implements AbstractParser {
       };
     }
   }
-
 }

@@ -64,6 +64,9 @@ export async function POST(request: Request) {
     repoName: string;
   } = await request.json();
 
+  console.log('owner', owner);
+  console.log('repoName', repoName);
+
   if (!process.env.PINECONE_API_KEY) {
     throw new Error('PINECONE_API_KEY is not defined');
   }
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
   //   .index('codebase-rag')
   //   .namespace('https://github.com/CoderAgent/SecureAgent');
 
-  const index = pc.index('codebase-rag').namespace(owner);
+  const index = pc.index('codebase-rag').namespace(repoName);
   // const index = pc.index('codebase-rag');
   // const namespace = index.namespace(
   //   'https://github.com/CoderAgent/SecureAgent'
@@ -133,7 +136,7 @@ export async function POST(request: Request) {
 
   const embeddings = await getEmbeddings(text);
   const results = await index.query({
-    topK: 3,
+    topK: 20,
     includeMetadata: true,
     vector: embeddings,
   });

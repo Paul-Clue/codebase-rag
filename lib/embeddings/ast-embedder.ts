@@ -25,6 +25,7 @@ export async function processGitHubRepo(owner: string, repo: string) {
     repo,
     path: ''
   });
+  
   // 2. Process each file recursively
   await processDirectory(octokit, owner, repo, '', files as any[]);
 }
@@ -69,15 +70,15 @@ async function processFile(
   const content = Buffer.from((data as { content: string }).content, 'base64').toString();
   const language = SUPPORTED_EXTENSIONS[getFileExtension(file.name) as keyof typeof SUPPORTED_EXTENSIONS];
   
-  await convertToASTAndEmbed(content, language, file.path, `${owner}/${repo}`, owner);
-}
+  await convertToASTAndEmbed(content, language, file.path, `${owner}/${repo}`, repo);
+}import traverse from '@babel/traverse';
 
 async function convertToASTAndEmbed(
   code: string,
   language: SupportedLanguage,
   filepath: string,
   repoId: string,
-  owner: string
+  repo: string
 ) {
   // 1. Parse code to AST
   const parser = language === 'javascript' ? 
@@ -88,14 +89,21 @@ async function convertToASTAndEmbed(
   const result = await parser.dryRun(code);
   const { valid, error } = result;
   const ast = 'ast' in result ? result.ast : null;
-
-  console.log('AST', ast);
-
   // 2. Get embeddings using HuggingFace
   const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
   const embedding = await hf.featureExtraction({
     model: 'sentence-transformers/all-mpnet-base-v2',
-    inputs: JSON.stringify(ast)
+    // inputs: JSON.stringify(ast)
+    inputs: JSON.stringify({
+      ast: ast,
+      fileContent: code,
+      filePath: filepath,
+      metadata: {
+        language,
+        valid,
+        error
+      }
+    })
   });
 
   // 3. Store in Pinecone
@@ -103,7 +111,7 @@ async function convertToASTAndEmbed(
     apiKey: process.env.PINECONE_API_KEY!
   });
 
-  const index = pc.index('codebase-rag').namespace(owner);
+  const index = pc.index('codebase-rag').namespace(repo);
   
   await index.upsert([{
     id: `${repoId}/${filepath}`,
