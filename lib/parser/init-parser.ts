@@ -1,5 +1,4 @@
 import Parser from 'web-tree-sitter';
-import path from 'path';
 
 let parserInitialized = false;
 let parser: Parser;
@@ -10,11 +9,11 @@ export async function initParser() {
       await Parser.init();
       parser = new Parser();
       
-      // In production, WASM file should be in the same directory as the compiled code
-      const wasmPath = process.env.NODE_ENV === 'production' 
-        ? path.join(process.cwd(), 'public', 'wasm', 'tree-sitter-python.wasm')
-        : '/wasm/tree-sitter-python.wasm';
-        
+      // Load WASM from public directory
+      const wasmPath = process.env.NODE_ENV === 'production'
+        ? '/var/task/public/wasm/tree-sitter.wasm'
+        : '/wasm/tree-sitter.wasm';
+
       console.log('Loading WASM from:', wasmPath);
       const Lang = await Parser.Language.load(wasmPath);
       parser.setLanguage(Lang);

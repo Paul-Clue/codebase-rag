@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@tree-sitter/tree-sitter'],
+    serverComponentsExternalPackages: ['web-tree-sitter'],
   },
   images: {
     domains: ['avatar.vercel.sh', 'github.com']
@@ -16,6 +16,10 @@ const nextConfig = {
       asyncWebAssembly: true,
       layers: true,
     };
+    if (isServer) {
+      config.output.webassemblyModuleFilename = 'chunks/[modulehash].wasm';
+      config.optimization.moduleIds = 'named';
+    }
     return config;
   },
   output: 'standalone'
