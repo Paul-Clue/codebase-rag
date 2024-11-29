@@ -323,17 +323,16 @@ export function Block({
                 chatId={chatId}
                 input={input}
                 setInput={setInput}
-                setOwner={setOwner}
-                setRepoName={setRepoName}
                 handleSubmit={handleSubmit}
                 isLoading={isLoading}
                 stop={stop}
                 attachments={attachments}
                 setAttachments={setAttachments}
                 messages={messages}
-                append={append}
-                className='bg-background dark:bg-muted'
                 setMessages={setMessages}
+                append={append}
+                setOwner={() => {}}
+                setRepoName={() => {}}
               />
             </form>
           </div>
