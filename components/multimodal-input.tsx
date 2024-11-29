@@ -207,12 +207,13 @@ export function MultimodalInput({
         body: JSON.stringify({ owner, repoName }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to embed repository');
+        throw new Error(data.error || 'Failed to embed repository');
       }
 
-      toast.success('Repository embedded successfully');
+      toast.success(data.message || 'Repository embedded successfully');
       setInput('');
       setValidRepo(true);
     } catch (error) {
