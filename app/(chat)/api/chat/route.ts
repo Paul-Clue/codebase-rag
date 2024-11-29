@@ -59,19 +59,23 @@ export async function POST(request: Request) {
       owner,
       repoName,
     } = await request.json();
-
+    console.log(1);
     if (!process.env.PINECONE_API_KEY) {
+      console.log('PINECONE_API_KEY is not defined');
+      console.error('PINECONE_API_KEY is not defined');
       return NextResponse.json({ 
         error: 'PINECONE_API_KEY is not defined' 
       }, { status: 500 });
     }
-
+    console.log(2);
     if (!process.env.HUGGINGFACE_API_KEY) {
+      console.log('HUGGINGFACE_API_KEY is not defined');
+      console.error('HUGGINGFACE_API_KEY is not defined');
       return NextResponse.json({ 
         error: 'HUGGINGFACE_API_KEY is not defined' 
       }, { status: 500 });
     }
-
+    console.log(3);
     try {
       const pc = new Pinecone({
         apiKey: process.env.PINECONE_API_KEY
@@ -79,7 +83,7 @@ export async function POST(request: Request) {
 
       const index = pc.index('codebase-rag').namespace(repoName);
       const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
-
+      console.log(4);
       async function getEmbeddings(text: string): Promise<number[]> {
         try {
           const response = await hf.featureExtraction({
@@ -92,16 +96,17 @@ export async function POST(request: Request) {
           throw error;
         }
       }
-
+      console.log(5);
       let text = messages[messages.length - 1].content;
 
       const embeddings = await getEmbeddings(text);
+      console.log(6);
       const results = await index.query({
         topK: 20,
         includeMetadata: true,
         vector: embeddings,
       });
-
+      console.log(7);
       let resultString =
         '\n\nReturned results from vector db (done automatically): ';
 
@@ -113,44 +118,44 @@ export async function POST(request: Request) {
         \n\n
         `;
       });
-
+      console.log(8);
       const lastMessage = messages[messages.length - 1];
       const lastMessageContent = lastMessage.content + resultString;
       messages[messages.length - 1].content = lastMessageContent;
       const lastDataWithoutLastMessage = messages.slice(0, messages.length - 1);
-
+      console.log(9);
       const session = await auth();
 
       if (!session || !session.user || !session.user.id) {
         return new Response('Unauthorized', { status: 401 });
       }
-
+      console.log(10);
       const model = models.find((model) => model.id === modelId);
 
       if (!model) {
         return new Response('Model not found', { status: 404 });
       }
-
+      console.log(11);
       const coreMessages = convertToCoreMessages(messages);
       const userMessage = getMostRecentUserMessage(coreMessages);
 
       if (!userMessage) {
         return new Response('No user message found', { status: 400 });
       }
-
+      console.log(12);
       const chat = await getChatById({ id });
 
       if (!chat) {
         const title = await generateTitleFromUserMessage({ message: userMessage });
         await saveChat({ id, userId: session.user.id, title });
       }
-
+      console.log(13);
       await saveMessages({
         messages: [
           { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
         ],
       });
-
+      console.log(14);
       const streamingData = new StreamData();
 
       const result = await streamText({
