@@ -3,43 +3,30 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    // Parse request body
     const body = await request.json();
     const { owner, repoName } = body;
 
     if (!owner || !repoName) {
-      return NextResponse.json(
-        { error: 'Missing owner or repository name' },
-        { status: 400 }
-      );
-    }
-
-    // Validate GitHub repo
-    const isValid = await fetch(
-      `https://api.github.com/repos/${owner}/${repoName}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GIT_HUB_TOKEN}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
-      }
-    ).then(res => res.status === 200);
-
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid GitHub repository' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'Missing owner or repository name'
+      });
     }
 
     // Process the repo
     await processGitHubRepo(owner, repoName);
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: 'Repository processed successfully'
+    });
+
   } catch (error) {
     console.error('Error processing repository:', error);
-    return NextResponse.json(
-      { error: 'Failed to process repository' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to process repository'
+    });
   }
 }
