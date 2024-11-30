@@ -218,7 +218,7 @@ export function MultimodalInput({
       setValidRepo(true);
     } catch (error) {
       console.error('Error:', error);
-      toast.error((error as Error).message || 'Failed to embed repository');
+      toast.error('Failed to embed repository. Please try again.');
     } finally {
       setLoading(false);
     }
